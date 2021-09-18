@@ -1,4 +1,6 @@
 import numpy as np
+from tqdm import tqdm # модуль прогркесс бара
+import time
 #import scipy.special
 #  определение класса нейронной сети
 class neuralNetwork:
@@ -82,9 +84,12 @@ training_data_file.close()
 
 # тренировка нейронной сети
 # перебрать все записи в тренировочном наборе данных
+
 epochs = 5
+print('Тренировка нейронной сети')
+print('Всего эпох обучения: ', epochs)
 for e in range(epochs):
-    for record in training_data_list:
+    for record in tqdm(training_data_list):
         # получить список значений, используя символы запятой ( 1, 1) # в качестве разделителей
         all_values = record.split(',')
         # масштабировать и сместить входные значения
@@ -97,6 +102,7 @@ for e in range(epochs):
     pass
 pass
 
+
 # загрузить в список тестовый набор данных CSV-файла набора MNIST
 test_data_file = open("mnist_dataset/mnist_test_10.csv", 'r')
 test_data_list = test_data_file.readlines()
@@ -106,18 +112,19 @@ test_data_file.close()
 # журнал оценок работы сети, первоначально пустой
 scorecard = []
 # перебрать все записи в тестовом наборе данных
-for record in test_data_list:
+print('Тестирование нейронной сети')
+for record in tqdm(test_data_list):
 # получить список значений из записи, используя символы  запятой (*,1) в качестве разделителей
     all_values = record.split(',')
     # правильный ответ - первое значение
     correct_label = int(all_values[0])
-    print(correct_label, "истинный маркер")
+    #print(correct_label, "истинный маркер")
     # масштабировать и сместить входные значения
     inputs = (np.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01 # опрос сети
     outputs = n.query(inputs)
     # индекс наибольшего значения является маркерным значением
     label = np.argmax(outputs)
-    print(label, "ответ сети")
+    #print(label, "ответ сети")
     # присоединить оценку ответа сети к концу списка
     if (label == correct_label):
     # в случае правильного ответа сети присоединить  к списку значение 1
@@ -132,6 +139,4 @@ pass
 # доли правильных ответов
 scorecard_array = np.asarray(scorecard)
 aff = scorecard_array.sum()/scorecard_array.size
-print("эффективность = ", aff)
-
-
+print("Эффективность сети = ", aff)
