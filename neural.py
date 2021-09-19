@@ -1,5 +1,5 @@
 import numpy as np
-from tqdm import tqdm # модуль прогркесс бара
+from tqdm import tqdm # модуль прогресс бара
 import time
 #import scipy.special
 #  определение класса нейронной сети
@@ -20,21 +20,27 @@ class neuralNetwork:
         # w13 w23 w33 w43 w53
         self.wih = np.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
         self.who = np.random.normal(0.0, pow(self.onodes, -0.5), (self.onodes, self.hnodes))
+        # Смещения для скрытого и выходного слоев
+        self.bias_h = np.random.normal(0.0, pow(1, -0.5), (self.hnodes, 1))
+        self.bias_o = np.random.normal(0.0, pow(1, -0.5), (self.onodes, 1))
 
         # использование сигмоиды в качестве функции активации
         self.activation_function = lambda x: 1 / (1 + np.exp(-x))
+
+        self.activation_function_d = lambda x: 1 * (x >= 0)
+
         pass
 
     def train(self, inputs_list, targets_list):
         # преобразование списка входных значений в двухмерный массив
         inputs = np.array(inputs_list, ndmin=2).T
         targets = np.array(targets_list, ndmin=2).T
-        # рассчитать входящие сигналы для скрытого слоя
-        hidden_inputs = np.dot(self.wih, inputs)
+        # рассчитать входящие сигналы для скрытого слоя + смещения
+        hidden_inputs = np.dot(self.wih, inputs) + self.bias_h
         # рассчитать исходящие сигналы для скрытого слоя
         hidden_outputs = self.activation_function(hidden_inputs)
-        # рассчитать входящие сигналы для выходного слоя
-        final_inputs = np.dot(self.who, hidden_outputs)
+        # рассчитать входящие сигналы для выходного слоя + смещения
+        final_inputs = np.dot(self.who, hidden_outputs) + self.bias_o
         # рассчитать исходящие сигналы для выходного слоя
         final_outputs = self.activation_function(final_inputs)
         # ошибки выходного слоя = ( целевое значение - фактическое значение)
@@ -49,6 +55,9 @@ class neuralNetwork:
         # обновить весовые коэффициенты для связей между входным и скрытым слоями
         # Измененный_вес = Коэффиц.обучения * Ошибка_скрытСлоя * Сигнал_скрытСлоя * (1 -Сигн_скрытСлоя) * Транспор_Сигнал_входа
         self.wih += self.lr * np.dot((hidden_errors * hidden_outputs * (1.0 - hidden_outputs)), np.transpose(inputs))
+        # обновляем смещения
+        self.bias_h += hidden_errors * self.activation_function(hidden_inputs) * self.lr
+        self.bias_o += output_errors * self.activation_function(final_inputs) * self.lr
 
         pass
 
@@ -72,7 +81,7 @@ input_nodes = 784
 hidden_nodes = 128
 output_nodes = 10
 
-# коэффициент обучения равен 0, 3
+# коэффициент обучения равен 0,3
 learning_rate = 0.1
 #создать экземпляр нейронной сети
 n = neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
@@ -85,7 +94,7 @@ training_data_file.close()
 # тренировка нейронной сети
 # перебрать все записи в тренировочном наборе данных
 
-epochs = 5
+epochs = 6
 print('Тренировка нейронной сети')
 print('Всего эпох обучения: ', epochs)
 for e in range(epochs):
